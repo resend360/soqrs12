@@ -36,8 +36,29 @@ export default function LoginPage() {
     setLoading(true)
     
     try {
+      // Telefonu +90 formatına çevir
+      let cleanPhone = phone.replace(/\s/g, '')
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '+90' + cleanPhone.substring(1)
+      } else if (!cleanPhone.startsWith('+')) {
+        cleanPhone = '+90' + cleanPhone
+      }
+      
+      const testPhones = ['+905511074559', '+905559876543']
+      
+      // Test mode - skip OTP
+      if (testPhones.includes(cleanPhone)) {
+        toast({
+          title: 'Test Mode',
+          description: 'Test numarası - OTP: 123456',
+        })
+        setStep('code')
+        setLoading(false)
+        return
+      }
+      
       const { error } = await supabase.auth.signInWithOtp({
-        phone: phone.replace(/\s/g, ''),
+        phone: cleanPhone,
         options: {
           channel: 'sms',
         },
@@ -76,8 +97,41 @@ export default function LoginPage() {
     setLoading(true)
     
     try {
+      // Telefonu +90 formatına çevir
+      let cleanPhone = phone.replace(/\s/g, '')
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '+90' + cleanPhone.substring(1)
+      } else if (!cleanPhone.startsWith('+')) {
+        cleanPhone = '+90' + cleanPhone
+      }
+      
+      const testPhones = ['+905511074559', '+905559876543']
+      
+      // Test mode - direkt giriş
+      if (testPhones.includes(cleanPhone) && code === '123456') {
+        console.log('[DEV MODE] Test login successful')
+        
+        // Direkt sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          phone: cleanPhone,
+          password: 'Test1234!',
+        })
+        
+        if (signInError) throw signInError
+        
+        toast({
+          title: 'Başarılı',
+          description: 'Giriş yapıldı',
+        })
+        
+        router.push('/park')
+        router.refresh()
+        return
+      }
+      
+      // Normal OTP doğrulama
       const { error } = await supabase.auth.verifyOtp({
-        phone: phone.replace(/\s/g, ''),
+        phone: cleanPhone,
         token: code,
         type: 'sms',
       })
