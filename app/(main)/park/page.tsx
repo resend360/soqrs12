@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MapPin, MessageSquare, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { ParkSpotMap } from '@/components/maps/ParkSpotMap'
 
 export default function ParkPage() {
   return (
@@ -39,9 +40,7 @@ export default function ParkPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-              <p className="text-muted-foreground">Harita yükleniyor...</p>
-            </div>
+            <ParkSpotMap />
           </CardContent>
         </Card>
 

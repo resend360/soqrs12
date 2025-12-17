@@ -70,6 +70,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
+        {/* OneSignal - Add your APP_ID when ready */}
+        {/* <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script> */}
       </head>
       <body className={`${inter.variable} ${poppins.variable} antialiased`}>
         <Providers>
