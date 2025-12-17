@@ -36,8 +36,23 @@ export default function RegisterPage() {
     setLoading(true)
     
     try {
+      const cleanPhone = phone.replace(/\s/g, '')
+      const testPhones = ['+905511074559', '+905559876543']
+      
+      // Test mode - skip OTP
+      if (testPhones.includes(cleanPhone)) {
+        toast({
+          title: 'Test Mode',
+          description: 'Test numarası - OTP: 123456',
+        })
+        setStep('code')
+        setLoading(false)
+        return
+      }
+      
+      // Normal OTP flow
       const { error } = await supabase.auth.signInWithOtp({
-        phone: phone.replace(/\s/g, ''),
+        phone: cleanPhone,
         options: {
           channel: 'sms',
         },
