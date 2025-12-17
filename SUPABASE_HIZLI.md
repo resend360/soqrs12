@@ -4,7 +4,7 @@
 
 ### 1️⃣ Supabase Hesabı Oluştur (1 dk)
 
-**Tarayıcıda aç:** https://supabase.com
+**Tarayıcıda aç:** S
 
 1. **"Start your project"** butonuna tıkla
 2. **GitHub ile giriş yap** (en hızlısı)
