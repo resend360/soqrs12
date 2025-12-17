@@ -14,28 +14,52 @@ const config: NetGSMConfig = {
 
 export async function sendSMS(phone: string, message: string): Promise<boolean> {
   try {
-    // NetGSM telefon formatı: 905XXXXXXXXX (başında 0 yok)
-    const cleanPhone = phone.replace(/\D/g, '').replace(/^0/, '90')
+    // NetGSM telefon formatı: 905XXXXXXXXX (başında + ve 0 yok)
+    let cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '90' + cleanPhone.substring(1)
+    } else if (!cleanPhone.startsWith('90')) {
+      cleanPhone = '90' + cleanPhone
+    }
     
-    const url = 'https://api.netgsm.com.tr/sms/send/get'
-    const params = new URLSearchParams({
-      usercode: config.usercode,
-      password: config.password,
-      gsmno: cleanPhone,
-      message: message,
-      msgheader: config.msgheader,
-      dil: 'TR',
-    })
+    // NetGSM XML API kullanımı
+    const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<mainbody>
+  <header>
+    <company dil="TR">Netgsm</company>
+    <usercode>${config.usercode}</usercode>
+    <password>${config.password}</password>
+    <type>1:n</type>
+    <msgheader>${config.msgheader}</msgheader>
+  </header>
+  <body>
+    <msg><![CDATA[${message}]]></msg>
+    <no>${cleanPhone}</no>
+  </body>
+</mainbody>`
 
-    const response = await fetch(`${url}?${params.toString()}`)
+    const response = await fetch('https://api.netgsm.com.tr/sms/send/xml', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/xml',
+      },
+      body: xmlData,
+    })
+    
     const result = await response.text()
+    
+    console.log('NetGSM Response:', result)
 
     // NetGSM başarılı yanıt: "00 XXXXXXXX" (00 = başarılı, XXXXXXXX = bulkid)
-    if (result.startsWith('00')) {
+    if (result.trim().startsWith('00')) {
       console.log('SMS sent successfully via NetGSM:', result)
       return true
     } else {
-      console.error('NetGSM error:', result)
+      console.error('NetGSM error code:', result)
+      const errorCode = result.trim()
+      if (NETGSM_ERROR_CODES[errorCode]) {
+        console.error('NetGSM error:', NETGSM_ERROR_CODES[errorCode])
+      }
       return false
     }
   } catch (error) {
