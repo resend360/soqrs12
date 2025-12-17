@@ -1,0 +1,31 @@
+# Bu dosyayı .env.local olarak kaydet ve bilgilerini doldur!
+
+# Supabase (ZORUNLU)
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+
+# NetGSM SMS (ZORUNLU - SMS için)
+NETGSM_USERCODE=8503xxxxxx
+NETGSM_PASSWORD=your_password
+NETGSM_MSGHEADER=SOQRS
+
+# Stripe (Opsiyonel - VIP QR için)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# OneSignal (Opsiyonel - Push bildirimleri için)
+NEXT_PUBLIC_ONESIGNAL_APP_ID=
+ONESIGNAL_API_KEY=
+
+# Google Maps (Opsiyonel - Harita özellikleri için)
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+
+# Cloudinary (Opsiyonel - Resim yükleme için)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
