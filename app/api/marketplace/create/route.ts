@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { data: listing, error } = await supabase
       .from('marketplace_items')
       .insert({
-        user_id: user.id,
+        seller_id: user.id,
         title,
         description,
         price: parseFloat(price),

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { data: post, error } = await supabase
       .from('posts')
       .insert({
-        user_id: user.id,
+        author_id: user.id,
         content,
         type: 'post',
       })

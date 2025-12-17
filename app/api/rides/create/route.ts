@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { data: ride, error } = await supabase
       .from('ride_requests')
       .insert({
-        user_id: user.id,
+        requester_id: user.id,
         from_location: from,
         to_location: to,
         passenger_count: parseInt(passengers),

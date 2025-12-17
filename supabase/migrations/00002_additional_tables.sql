@@ -7,7 +7,7 @@
 
 CREATE TABLE IF NOT EXISTS ride_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  requester_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   from_location TEXT NOT NULL,
   to_location TEXT NOT NULL,
   pickup_location GEOGRAPHY(POINT, 4326),
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS ride_requests (
   expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '2 hours')
 );
 
-CREATE INDEX idx_ride_requests_user ON ride_requests(user_id);
+CREATE INDEX idx_ride_requests_requester ON ride_requests(requester_id);
 CREATE INDEX idx_ride_requests_status ON ride_requests(status);
 CREATE INDEX idx_ride_requests_location ON ride_requests USING GIST(pickup_location);
 CREATE INDEX idx_ride_requests_created ON ride_requests(created_at DESC);
@@ -31,15 +31,15 @@ ALTER TABLE ride_requests ENABLE ROW LEVEL SECURITY;
 -- RLS Policies
 CREATE POLICY "Users can view active ride requests"
   ON ride_requests FOR SELECT
-  USING (status = 'active' OR user_id = auth.uid() OR matched_driver_id = auth.uid());
+  USING (status = 'active' OR requester_id = auth.uid() OR matched_driver_id = auth.uid());
 
 CREATE POLICY "Users can create their own ride requests"
   ON ride_requests FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = requester_id);
 
 CREATE POLICY "Users can update their own ride requests"
   ON ride_requests FOR UPDATE
-  USING (auth.uid() = user_id OR auth.uid() = matched_driver_id);
+  USING (auth.uid() = requester_id OR auth.uid() = matched_driver_id);
 
 -- ============================================================================
 -- MARKETPLACE ITEMS
@@ -47,7 +47,7 @@ CREATE POLICY "Users can update their own ride requests"
 
 CREATE TABLE IF NOT EXISTS marketplace_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  seller_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS marketplace_items (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_marketplace_user ON marketplace_items(user_id);
+CREATE INDEX idx_marketplace_seller ON marketplace_items(seller_id);
 CREATE INDEX idx_marketplace_status ON marketplace_items(status);
 CREATE INDEX idx_marketplace_category ON marketplace_items(category);
 CREATE INDEX idx_marketplace_created ON marketplace_items(created_at DESC);
@@ -71,19 +71,19 @@ ALTER TABLE marketplace_items ENABLE ROW LEVEL SECURITY;
 -- RLS Policies
 CREATE POLICY "Anyone can view active marketplace items"
   ON marketplace_items FOR SELECT
-  USING (status = 'active' OR user_id = auth.uid());
+  USING (status = 'active' OR seller_id = auth.uid());
 
 CREATE POLICY "Users can create their own listings"
   ON marketplace_items FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = seller_id);
 
 CREATE POLICY "Users can update their own listings"
   ON marketplace_items FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = seller_id);
 
 CREATE POLICY "Users can delete their own listings"
   ON marketplace_items FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = seller_id);
 
 -- ============================================================================
 -- POSTS (Social Feed)
@@ -91,7 +91,7 @@ CREATE POLICY "Users can delete their own listings"
 
 CREATE TABLE IF NOT EXISTS posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   type TEXT NOT NULL DEFAULT 'post' CHECK (type IN ('post', 'story', 'share')),
   media_urls TEXT[] DEFAULT '{}',
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_posts_user ON posts(user_id);
+CREATE INDEX idx_posts_author ON posts(author_id);
 CREATE INDEX idx_posts_type ON posts(type);
 CREATE INDEX idx_posts_created ON posts(created_at DESC);
 CREATE INDEX idx_posts_visibility ON posts(visibility);
@@ -114,19 +114,19 @@ ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 -- RLS Policies
 CREATE POLICY "Anyone can view public posts"
   ON posts FOR SELECT
-  USING (visibility = 'public' OR user_id = auth.uid());
+  USING (visibility = 'public' OR author_id = auth.uid());
 
 CREATE POLICY "Users can create their own posts"
   ON posts FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = author_id);
 
 CREATE POLICY "Users can update their own posts"
   ON posts FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = author_id);
 
 CREATE POLICY "Users can delete their own posts"
   ON posts FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = author_id);
 
 -- ============================================================================
 -- POST LIKES
@@ -135,13 +135,13 @@ CREATE POLICY "Users can delete their own posts"
 CREATE TABLE IF NOT EXISTS post_likes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  liker_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(post_id, user_id)
+  UNIQUE(post_id, liker_id)
 );
 
 CREATE INDEX idx_post_likes_post ON post_likes(post_id);
-CREATE INDEX idx_post_likes_user ON post_likes(user_id);
+CREATE INDEX idx_post_likes_liker ON post_likes(liker_id);
 
 -- Enable RLS
 ALTER TABLE post_likes ENABLE ROW LEVEL SECURITY;
@@ -152,11 +152,11 @@ CREATE POLICY "Anyone can view likes"
 
 CREATE POLICY "Users can like posts"
   ON post_likes FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = liker_id);
 
 CREATE POLICY "Users can unlike posts"
   ON post_likes FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = liker_id);
 
 -- ============================================================================
 -- POST COMMENTS
@@ -165,7 +165,7 @@ CREATE POLICY "Users can unlike posts"
 CREATE TABLE IF NOT EXISTS post_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  commenter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   parent_comment_id UUID REFERENCES post_comments(id) ON DELETE CASCADE,
   likes_count INTEGER DEFAULT 0,
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS post_comments (
 );
 
 CREATE INDEX idx_post_comments_post ON post_comments(post_id);
-CREATE INDEX idx_post_comments_user ON post_comments(user_id);
+CREATE INDEX idx_post_comments_commenter ON post_comments(commenter_id);
 CREATE INDEX idx_post_comments_parent ON post_comments(parent_comment_id);
 
 -- Enable RLS
@@ -186,15 +186,15 @@ CREATE POLICY "Anyone can view comments"
 
 CREATE POLICY "Users can create comments"
   ON post_comments FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = commenter_id);
 
 CREATE POLICY "Users can update their own comments"
   ON post_comments FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = commenter_id);
 
 CREATE POLICY "Users can delete their own comments"
   ON post_comments FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = commenter_id);
 
 -- ============================================================================
 -- FUNCTIONS
@@ -208,7 +208,7 @@ CREATE OR REPLACE FUNCTION get_nearby_ride_requests(
 )
 RETURNS TABLE (
   id UUID,
-  user_id UUID,
+  requester_id UUID,
   from_location TEXT,
   to_location TEXT,
   passenger_count INTEGER,
@@ -220,7 +220,7 @@ BEGIN
   RETURN QUERY
   SELECT
     r.id,
-    r.user_id,
+    r.requester_id,
     r.from_location,
     r.to_location,
     r.passenger_count,
