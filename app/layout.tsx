@@ -3,6 +3,8 @@ import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Toaster } from '@/components/ui/toaster'
+import { DebugBar } from '@/components/shared/DebugBar'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -74,10 +76,13 @@ export default function RootLayout({
         {/* <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script> */}
       </head>
       <body className={`${inter.variable} ${poppins.variable} antialiased`}>
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            {children}
+            <Toaster />
+            <DebugBar />
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   )

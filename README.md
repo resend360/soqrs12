@@ -2,7 +2,11 @@
 
 Modern, cross-platform QR sosyal platform ve minimal carpooling sistemi. Next.js 14, TypeScript, Supabase ve PWA teknolojileri ile geliştirilmiştir.
 
-🚀 **Live Demo:** https://soqrs12.vercel.app
+🚀 **Live Demo:** https://soqrs.com | https://soqrs1222.vercel.app
+
+### 🧪 Test Credentials
+- **Email:** test@soqrs.com / **Password:** Test1234!
+- **Phone:** +905511074559 / **OTP:** 123456
 
 ## 🎯 Proje Özeti
 
