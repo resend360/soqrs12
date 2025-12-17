@@ -13,21 +13,20 @@ import { createClient } from '@/lib/supabase/client'
 import { isValidPhoneNumber } from '@/lib/utils'
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState('')
-  const [code, setCode] = useState('')
-  const [step, setStep] = useState<'phone' | 'code'>('phone')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
 
-  const handleSendCode = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!isValidPhoneNumber(phone)) {
+    if (!email || !password) {
       toast({
         title: 'Hata',
-        description: 'Geçerli bir telefon numarası girin (05XX XXX XX XX)',
+        description: 'Email ve şifre gerekli',
         variant: 'destructive',
       })
       return
@@ -36,104 +35,9 @@ export default function LoginPage() {
     setLoading(true)
     
     try {
-      // Telefonu +90 formatına çevir
-      let cleanPhone = phone.replace(/\s/g, '')
-      if (cleanPhone.startsWith('0')) {
-        cleanPhone = '+90' + cleanPhone.substring(1)
-      } else if (!cleanPhone.startsWith('+')) {
-        cleanPhone = '+90' + cleanPhone
-      }
-      
-      const testPhones = ['+905511074559', '+905559876543']
-      
-      // Test mode - skip OTP
-      if (testPhones.includes(cleanPhone)) {
-        toast({
-          title: 'Test Mode',
-          description: 'Test numarası - OTP: 123456',
-        })
-        setStep('code')
-        setLoading(false)
-        return
-      }
-      
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: cleanPhone,
-        options: {
-          channel: 'sms',
-        },
-      })
-
-      if (error) throw error
-
-      toast({
-        title: 'Kod Gönderildi',
-        description: 'Telefonunuza gelen 6 haneli kodu girin',
-      })
-      setStep('code')
-    } catch (error: any) {
-      toast({
-        title: 'Hata',
-        description: error.message || 'Kod gönderilemedi',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (code.length !== 6) {
-      toast({
-        title: 'Hata',
-        description: '6 haneli kodu girin',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    setLoading(true)
-    
-    try {
-      // Telefonu +90 formatına çevir
-      let cleanPhone = phone.replace(/\s/g, '')
-      if (cleanPhone.startsWith('0')) {
-        cleanPhone = '+90' + cleanPhone.substring(1)
-      } else if (!cleanPhone.startsWith('+')) {
-        cleanPhone = '+90' + cleanPhone
-      }
-      
-      const testPhones = ['+905511074559', '+905559876543']
-      
-      // Test mode - direkt giriş
-      if (testPhones.includes(cleanPhone) && code === '123456') {
-        console.log('[DEV MODE] Test login successful')
-        
-        // Direkt sign in
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          phone: cleanPhone,
-          password: 'Test1234!',
-        })
-        
-        if (signInError) throw signInError
-        
-        toast({
-          title: 'Başarılı',
-          description: 'Giriş yapıldı',
-        })
-        
-        router.push('/park')
-        router.refresh()
-        return
-      }
-      
-      // Normal OTP doğrulama
-      const { error } = await supabase.auth.verifyOtp({
-        phone: cleanPhone,
-        token: code,
-        type: 'sms',
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
       if (error) throw error
@@ -148,7 +52,7 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         title: 'Hata',
-        description: error.message || 'Kod doğrulanamadı',
+        description: error.message || 'Giriş başarısız',
         variant: 'destructive',
       })
     } finally {
@@ -164,59 +68,39 @@ export default function LoginPage() {
         </div>
         <CardTitle className="text-2xl">SOQRS'a Giriş Yap</CardTitle>
         <CardDescription>
-          {step === 'phone' 
-            ? 'Telefon numaranızla giriş yapın' 
-            : 'Telefonunuza gelen kodu girin'}
+          Email ve şifrenizle giriş yapın
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {step === 'phone' ? (
-          <form onSubmit={handleSendCode} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefon Numarası</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="05XX XXX XX XX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                disabled={loading}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Gönderiliyor...' : 'Kod Gönder'}
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyCode} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">Doğrulama Kodu</Label>
-              <Input
-                id="code"
-                type="text"
-                placeholder="6 haneli kod"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                maxLength={6}
-                disabled={loading}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Doğrulanıyor...' : 'Giriş Yap'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => setStep('phone')}
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="test@soqrs.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
-            >
-              Farklı numara ile giriş yap
-            </Button>
-          </form>
-        )}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Şifre</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+          </Button>
+        </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
         <div className="text-sm text-muted-foreground text-center">
