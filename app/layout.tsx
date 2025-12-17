@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'SOQRS',
   },
   formatDetection: {
@@ -39,6 +39,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SOQRS',
     description: 'QR-based social platform',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icons/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/icons/icon.svg',
   },
 }
 
@@ -58,8 +65,11 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icons/icon.svg" />
       </head>
       <body className={`${inter.variable} ${poppins.variable} antialiased`}>
         <Providers>
