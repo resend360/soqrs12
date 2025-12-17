@@ -133,12 +133,28 @@ export default function RegisterPage() {
 
       if (authError) throw authError
 
-      // Check if user profile exists
-      const { data: existingUser } = await supabase
+      // Check if user profile exists (her iki format için de dene)
+      let existingUser = null
+      
+      // Önce +90 formatı ile dene
+      const { data: user1 } = await supabase
         .from('users')
         .select('id')
-        .eq('phone', phone.replace(/\s/g, ''))
-        .single()
+        .eq('phone', cleanPhone)
+        .maybeSingle()
+      
+      if (user1) {
+        existingUser = user1
+      } else {
+        // 0 formatı ile dene
+        const phoneWithZero = cleanPhone.replace('+90', '0')
+        const { data: user2 } = await supabase
+          .from('users')
+          .select('id')
+          .eq('phone', phoneWithZero)
+          .maybeSingle()
+        existingUser = user2
+      }
 
       if (existingUser) {
         // User exists, redirect to main app
