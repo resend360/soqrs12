@@ -17,33 +17,47 @@ export default function QRScanPage() {
 
   useEffect(() => {
     if (scanning) {
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-        },
-        false
-      )
+      // Kamera izni iste
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          const scanner = new Html5QrcodeScanner(
+            'qr-reader',
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
+              rememberLastUsedCamera: true,
+            },
+            false
+          )
 
-      scanner.render(
-        (decodedText) => {
-          setScannedData(decodedText)
-          scanner.clear()
+          scanner.render(
+            (decodedText) => {
+              setScannedData(decodedText)
+              scanner.clear()
+              setScanning(false)
+              handleScannedData(decodedText)
+            },
+            (error) => {
+              // Ignore errors during scanning
+            }
+          )
+
+          return () => {
+            scanner.clear().catch(() => {})
+          }
+        })
+        .catch((error) => {
+          console.error('Camera permission denied:', error)
+          toast({
+            title: 'Kamera İzni Gerekli',
+            description: 'QR kod taramak için kamera iznini vermelisiniz',
+            variant: 'destructive',
+          })
           setScanning(false)
-          handleScannedData(decodedText)
-        },
-        (error) => {
-          // Ignore errors during scanning
-        }
-      )
-
-      return () => {
-        scanner.clear().catch(() => {})
-      }
+        })
     }
-  }, [scanning])
+  }, [scanning, toast])
 
   const handleScannedData = async (data: string) => {
     try {

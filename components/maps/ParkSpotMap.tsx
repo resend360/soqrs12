@@ -18,7 +18,7 @@ export function ParkSpotMap() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get user location
+    // Get user location with better error handling
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -28,8 +28,19 @@ export function ParkSpotMap() {
           })
           fetchNearbySpots(position.coords.latitude, position.coords.longitude)
         },
-        () => {
+        (error) => {
+          console.error('Location error:', error)
           setLoading(false)
+          
+          // Fallback to Istanbul coordinates for demo
+          const fallbackLocation = { lat: 41.0082, lng: 28.9784 }
+          setUserLocation(fallbackLocation)
+          fetchNearbySpots(fallbackLocation.lat, fallbackLocation.lng)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       )
     } else {

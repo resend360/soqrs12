@@ -22,15 +22,35 @@ export default async function MyQRPage() {
     .eq('id', user.id)
     .single()
 
-  const { data: qrCode } = await supabase
+  // QR kod yoksa oluştur
+  let qrCode = await supabase
     .from('qr_codes')
     .select('*')
     .eq('user_id', user.id)
     .eq('is_active', true)
-    .single()
+    .maybeSingle()
 
-  if (!profile || !qrCode) {
+  if (!profile) {
     redirect('/onboarding')
+  }
+
+  // QR kod yoksa otomatik oluştur
+  if (!qrCode.data) {
+    const qrUrl = `https://soqrs.com/@${profile.username}`
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrUrl)}`
+    
+    const { data: newQR } = await supabase
+      .from('qr_codes')
+      .insert({
+        user_id: user.id,
+        qr_code_url: qrCodeUrl,
+        qr_type: 'free',
+        is_active: true,
+      })
+      .select()
+      .single()
+    
+    qrCode = { data: newQR }
   }
 
   return (
@@ -49,11 +69,12 @@ export default async function MyQRPage() {
             <div className="flex justify-center">
               <div className="p-4 bg-white rounded-lg shadow-lg">
                 <Image
-                  src={qrCode.qr_code_url}
+                  src={qrCode.data.qr_code_url}
                   alt="QR Code"
                   width={300}
                   height={300}
                   className="w-full max-w-[300px] h-auto"
+                  unoptimized
                 />
               </div>
             </div>
@@ -80,12 +101,12 @@ export default async function MyQRPage() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">QR Tipi</span>
                 <span className="text-sm font-medium capitalize">
-                  {qrCode.qr_type === 'free' ? 'Ücretsiz' : 'Premium'}
+                  {qrCode.data.qr_type === 'free' ? 'Ücretsiz' : 'Premium'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Tarama Sayısı</span>
-                <span className="text-sm font-medium">{qrCode.scan_count}</span>
+                <span className="text-sm font-medium">{qrCode.data.scan_count}</span>
               </div>
             </div>
           </CardContent>
