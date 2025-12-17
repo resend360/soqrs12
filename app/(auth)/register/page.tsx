@@ -76,13 +76,33 @@ export default function RegisterPage() {
     setLoading(true)
     
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: phone.replace(/\s/g, ''),
-        token: code,
-        type: 'sms',
-      })
+      // Test mode kontrolü - belirli numaralar için 123456 kabul et
+      const testPhones = ['+905511074559', '+905559876543']
+      const cleanPhone = phone.replace(/\s/g, '')
+      
+      let authData, authError
+      
+      if (testPhones.includes(cleanPhone) && code === '123456') {
+        // Test mode - direkt sign in
+        console.log('[DEV MODE] Test phone with dev OTP, signing in...')
+        const signInResult = await supabase.auth.signInWithPassword({
+          phone: cleanPhone,
+          password: 'Test1234!', // Test kullanıcısının şifresi
+        })
+        authData = signInResult.data
+        authError = signInResult.error
+      } else {
+        // Normal OTP doğrulama
+        const verifyResult = await supabase.auth.verifyOtp({
+          phone: cleanPhone,
+          token: code,
+          type: 'sms',
+        })
+        authData = verifyResult.data
+        authError = verifyResult.error
+      }
 
-      if (error) throw error
+      if (authError) throw authError
 
       // Check if user profile exists
       const { data: existingUser } = await supabase
