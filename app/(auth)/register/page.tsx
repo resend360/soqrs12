@@ -36,7 +36,14 @@ export default function RegisterPage() {
     setLoading(true)
     
     try {
-      const cleanPhone = phone.replace(/\s/g, '')
+      // Telefonu +90 formatına çevir
+      let cleanPhone = phone.replace(/\s/g, '')
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '+90' + cleanPhone.substring(1)
+      } else if (!cleanPhone.startsWith('+')) {
+        cleanPhone = '+90' + cleanPhone
+      }
+      
       const testPhones = ['+905511074559', '+905559876543']
       
       // Test mode - skip OTP
@@ -91,9 +98,16 @@ export default function RegisterPage() {
     setLoading(true)
     
     try {
+      // Telefonu +90 formatına çevir
+      let cleanPhone = phone.replace(/\s/g, '')
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '+90' + cleanPhone.substring(1)
+      } else if (!cleanPhone.startsWith('+')) {
+        cleanPhone = '+90' + cleanPhone
+      }
+      
       // Test mode kontrolü - belirli numaralar için 123456 kabul et
       const testPhones = ['+905511074559', '+905559876543']
-      const cleanPhone = phone.replace(/\s/g, '')
       
       let authData, authError
       
