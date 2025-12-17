@@ -2,6 +2,8 @@ import { WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+export const dynamic = 'force-static'
+
 export default function OfflinePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
