@@ -2,6 +2,8 @@
 
 Modern, cross-platform QR sosyal platform ve minimal carpooling sistemi. Next.js 14, TypeScript, Supabase ve PWA teknolojileri ile geliştirilmiştir.
 
+🚀 **Live Demo:** https://soqrs12.vercel.app
+
 ## 🎯 Proje Özeti
 
 **SOQRS**, QR kod bazlı sosyal bir platformdur. Kullanıcılar araçlarına/eşyalarına özel QR kod alır, park iletişimi kurar, sosyal ağlarını genişletir ve carpooling ile yolculuklarını paylaşır.
