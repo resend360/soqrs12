@@ -36,3 +36,4 @@ export const sendNotification = async (
   // For now, it's a placeholder
   console.log('Send notification:', { userId, title, message, data })
 }
+

@@ -126,3 +126,4 @@ export default async function VehicleQRPage({ params }: { params: { id: string }
     </div>
   )
 }
+

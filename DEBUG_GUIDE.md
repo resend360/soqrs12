@@ -221,3 +221,4 @@ Debug mode aktifken tüm fetch istekleri otomatik izlenir:
 ---
 
 **Debug mode ile mutlu testler!** 🐛🔧
+

@@ -88,3 +88,4 @@ export const useNotificationStore = create<NotificationState>()((set) => ({
     })),
   clearNotifications: () => set({ notifications: [], unreadCount: 0 }),
 }))
+

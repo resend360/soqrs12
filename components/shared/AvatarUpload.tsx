@@ -157,3 +157,4 @@ export function AvatarUpload({ currentAvatar, fallbackText, onUploadComplete }: 
     </div>
   )
 }
+

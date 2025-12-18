@@ -161,3 +161,4 @@ VALUES (
 ---
 
 **Not:** Tüm migration'lar `supabase/migrations/` klasöründe!
+

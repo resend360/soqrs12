@@ -230,3 +230,4 @@ Avatar upload için Cloudinary kullanılıyor. Eğer setup yoksa base64 preview 
 **Status:** ✅ READY FOR DEPLOYMENT  
 **Last Updated:** 17 Aralık 2024, 00:30  
 **Build:** SUCCESS (87.2 kB shared bundle)
+
