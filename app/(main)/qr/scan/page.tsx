@@ -16,36 +16,41 @@ export default function QRScanPage() {
   const { toast } = useToast()
 
   useEffect(() => {
+    let scanner: Html5QrcodeScanner | null = null
+
     if (scanning) {
       // Kamera izni iste
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(() => {
-          const scanner = new Html5QrcodeScanner(
+          scanner = new Html5QrcodeScanner(
             'qr-reader',
             {
               fps: 10,
               qrbox: { width: 250, height: 250 },
               aspectRatio: 1.0,
               rememberLastUsedCamera: true,
+              showTorchButtonIfSupported: true,
             },
             false
           )
 
           scanner.render(
             (decodedText) => {
+              console.log('QR Code scanned:', decodedText)
               setScannedData(decodedText)
-              scanner.clear()
+              if (scanner) {
+                scanner.clear().catch(console.error)
+              }
               setScanning(false)
               handleScannedData(decodedText)
             },
-            (error) => {
-              // Ignore errors during scanning
+            (errorMessage) => {
+              // Sadece kritik hataları göster
+              if (errorMessage.includes('NotAllowedError')) {
+                console.error('Camera permission error:', errorMessage)
+              }
             }
           )
-
-          return () => {
-            scanner.clear().catch(() => {})
-          }
         })
         .catch((error) => {
           console.error('Camera permission denied:', error)
@@ -56,6 +61,12 @@ export default function QRScanPage() {
           })
           setScanning(false)
         })
+    }
+
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(console.error)
+      }
     }
   }, [scanning, toast])
 
@@ -158,15 +169,37 @@ export default function QRScanPage() {
 
         {scanning && (
           <Card>
-            <CardContent className="p-6">
+            <CardHeader>
+              <CardTitle className="text-center">QR Kodu Kameraya Göster</CardTitle>
+              <CardDescription className="text-center">
+                QR kod otomatik olarak algılanacak
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div id="qr-reader" className="w-full" />
               <Button
-                onClick={() => setScanning(false)}
+                onClick={() => {
+                  setScanning(false)
+                }}
                 variant="outline"
-                className="w-full mt-4"
+                className="w-full"
               >
                 İptal
               </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {scannedData && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center text-green-600">✓ QR Kod Okundu</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">Yönlendiriliyorsunuz...</p>
+              <code className="text-xs bg-muted p-2 rounded block break-all">
+                {scannedData}
+              </code>
             </CardContent>
           </Card>
         )}

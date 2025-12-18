@@ -107,55 +107,101 @@ export function ParkSpotMap() {
   return (
     <div className="space-y-4">
       {/* Simple Map Placeholder - Google Maps will be integrated later */}
-      <div className="aspect-video bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg relative overflow-hidden">
+      <div className="aspect-video bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg relative overflow-hidden border-2 border-blue-200 dark:border-blue-800">
+        {/* Location Info Badge */}
+        <div className="absolute top-3 left-3 z-30 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-full shadow-lg text-xs font-medium flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          Konum Aktif
+        </div>
+
+        {/* Coordinates Display */}
+        <div className="absolute top-3 right-3 z-30 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg shadow-lg text-xs">
+          <div className="text-muted-foreground">
+            {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+          </div>
+        </div>
+
         {/* User Location */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
           <div className="relative">
-            <div className="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg" />
-            <div className="absolute inset-0 w-4 h-4 bg-blue-500 rounded-full animate-ping opacity-75" />
+            <div className="w-5 h-5 bg-blue-600 rounded-full border-4 border-white shadow-xl" />
+            <div className="absolute inset-0 w-5 h-5 bg-blue-500 rounded-full animate-ping opacity-75" />
+          </div>
+          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-blue-600 text-white px-2 py-0.5 rounded shadow">
+            Sen
           </div>
         </div>
 
         {/* Park Spots */}
-        {parkSpots.map((spot, index) => {
-          // Simple positioning for demo
-          const angle = (index / parkSpots.length) * Math.PI * 2
-          const radius = 80
-          const x = 50 + Math.cos(angle) * radius
-          const y = 50 + Math.sin(angle) * radius
+        {parkSpots.length > 0 ? (
+          parkSpots.map((spot, index) => {
+            // Simple positioning for demo
+            const angle = (index / parkSpots.length) * Math.PI * 2
+            const radius = 30 + (index % 3) * 15
+            const x = 50 + Math.cos(angle) * radius
+            const y = 50 + Math.sin(angle) * radius
 
-          return (
-            <div
-              key={spot.id}
-              className="absolute z-20"
-              style={{
-                left: `${x}%`,
-                top: `${y}%`,
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              <MapPin className="w-6 h-6 text-primary drop-shadow-lg" fill="currentColor" />
+            return (
+              <div
+                key={spot.id}
+                className="absolute z-20 animate-bounce"
+                style={{
+                  left: `${x}%`,
+                  top: `${y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  animationDelay: `${index * 0.1}s`,
+                  animationDuration: '2s',
+                }}
+              >
+                <MapPin className="w-7 h-7 text-green-600 drop-shadow-lg" fill="currentColor" />
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-green-600 text-white px-2 py-0.5 rounded shadow">
+                  @{spot.username}
+                </div>
+              </div>
+            )
+          })
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <div className="bg-white dark:bg-gray-900 px-4 py-3 rounded-lg shadow-lg text-center">
+              <MapPin className="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-50" />
+              <p className="text-sm font-medium">Yakında Park Yeri Yok</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Çıkarken paylaş, başkaları görsün!
+              </p>
             </div>
-          )
-        })}
+          </div>
+        )}
 
         {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="grid grid-cols-8 grid-rows-8 h-full">
-            {Array.from({ length: 64 }).map((_, i) => (
-              <div key={i} className="border border-blue-300 dark:border-blue-700" />
+        <div className="absolute inset-0 opacity-5">
+          <div className="grid grid-cols-10 grid-rows-10 h-full">
+            {Array.from({ length: 100 }).map((_, i) => (
+              <div key={i} className="border border-blue-400 dark:border-blue-600" />
             ))}
           </div>
+        </div>
+
+        {/* Compass */}
+        <div className="absolute bottom-3 right-3 z-30 w-12 h-12 bg-white dark:bg-gray-900 rounded-full shadow-lg flex items-center justify-center">
+          <div className="text-xs font-bold text-blue-600">N</div>
         </div>
       </div>
 
       {/* Spot Count */}
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">
-          {parkSpots.length} park yeri bulundu
-        </span>
-        <Button variant="ghost" size="sm" onClick={() => fetchNearbySpots(userLocation.lat, userLocation.lng)}>
-          Yenile
+      <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-primary" />
+          <span className="font-medium">
+            {parkSpots.length} park yeri bulundu
+          </span>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => fetchNearbySpots(userLocation.lat, userLocation.lng)}
+          className="h-8"
+        >
+          🔄 Yenile
         </Button>
       </div>
     </div>

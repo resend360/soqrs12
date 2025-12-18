@@ -19,6 +19,7 @@ export function middleware(request: NextRequest) {
       '/api/profile/update',
       '/api/qr/scan',
       '/api/park/nearby',
+      '/api/park/create-spot',
       '/api/rides/create',
       '/api/marketplace/create',
       '/api/social/create',
