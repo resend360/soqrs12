@@ -2,49 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // Log all requests in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Middleware] ${request.method} ${pathname}`)
-  }
-
-  // Handle API routes that don't exist
-  if (pathname.startsWith('/api/')) {
-    // List of implemented API routes
-    const implementedRoutes = [
-      '/api/auth/login',
-      '/api/auth/logout',
-      '/api/sms/send-otp',
-      '/api/profile/update',
-      '/api/qr/scan',
-      '/api/qr/generate',
-      '/api/park/nearby',
-      '/api/park/create-spot',
-      '/api/rides/create',
-      '/api/marketplace/create',
-      '/api/social/create',
-      '/api/vehicles/create',
-      '/api/stripe/create-checkout',
-    ]
-
-    const isImplemented = implementedRoutes.some(route => pathname.startsWith(route))
-
-    if (!isImplemented) {
-      console.warn(`[404 API] ${pathname} - Not implemented yet`)
-      
-      return NextResponse.json(
-        {
-          error: 'Not implemented',
-          message: 'Bu API endpoint henüz geliştirilmedi',
-          path: pathname,
-          status: 501,
-        },
-        { status: 501 }
-      )
-    }
-  }
-
+  // Simple passthrough - let API routes handle their own errors
   return NextResponse.next()
 }
 
