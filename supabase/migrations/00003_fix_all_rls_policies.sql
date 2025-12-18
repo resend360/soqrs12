@@ -160,13 +160,13 @@ DROP POLICY IF EXISTS "Users can update their own ads" ON marketplace_ads;
 DROP POLICY IF EXISTS "Users can delete their own ads" ON marketplace_ads;
 
 CREATE POLICY "Anyone can view active marketplace ads"
-  ON marketplace_ads FOR SELECT USING (status = 'active' OR auth.uid() = seller_id);
+  ON marketplace_ads FOR SELECT USING (is_active = true OR auth.uid() = user_id);
 CREATE POLICY "Users can insert their own ads"
-  ON marketplace_ads FOR INSERT WITH CHECK (auth.uid() = seller_id);
+  ON marketplace_ads FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own ads"
-  ON marketplace_ads FOR UPDATE USING (auth.uid() = seller_id);
+  ON marketplace_ads FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own ads"
-  ON marketplace_ads FOR DELETE USING (auth.uid() = seller_id);
+  ON marketplace_ads FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================================================
 -- OPTIONAL TABLES (with IF EXISTS check)
