@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/netgsm'
 
+export const dynamic = 'force-dynamic'
+
 // Test numaraları - SMS göndermeden direkt başarılı döner
 const TEST_PHONES = ['+905511074559', '+905559876543']
 const DEV_OTP = '123456' // Development OTP kodu

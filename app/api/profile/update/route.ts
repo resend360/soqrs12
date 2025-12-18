@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { withDebug, handleAPIError } from '@/lib/api-handler'
 
+export const dynamic = 'force-dynamic'
+
 // Support both POST and PUT for compatibility
 export async function POST(request: NextRequest) {
   return handleUpdate(request)

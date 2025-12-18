@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 // Catch-all route for unimplemented API endpoints
 export async function GET(request: NextRequest) {
   return handleNotImplemented(request)
