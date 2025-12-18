@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { QrCode, Car, Users, MapPin, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { generateUsername } from '@/lib/utils'
+import { AvatarUpload } from '@/components/shared/AvatarUpload'
 
 const TUTORIAL_SLIDES = [
   {
@@ -189,14 +189,11 @@ export default function OnboardingPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmitProfile} className="space-y-4">
-          <div className="flex justify-center mb-4">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={formData.avatar_url} />
-              <AvatarFallback className="text-2xl">
-                {formData.full_name ? formData.full_name[0].toUpperCase() : '?'}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+          <AvatarUpload
+            currentAvatar={formData.avatar_url}
+            fallbackText={formData.full_name?.[0]?.toUpperCase() || '?'}
+            onUploadComplete={(url) => setFormData({ ...formData, avatar_url: url })}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="full_name">Ad Soyad *</Label>

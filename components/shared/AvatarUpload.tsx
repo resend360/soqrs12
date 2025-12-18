@@ -44,29 +44,67 @@ export function AvatarUpload({ currentAvatar, fallbackText, onUploadComplete }: 
     setUploading(true)
 
     try {
-      // Create preview
+      // Create preview immediately
       const reader = new FileReader()
       reader.onloadend = () => {
         setPreview(reader.result as string)
       }
       reader.readAsDataURL(file)
 
-      // TODO: Upload to Cloudinary
-      // For now, just use the preview
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Upload to Cloudinary
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', 'soqrs_avatars') // You need to create this in Cloudinary
+      formData.append('folder', 'soqrs/avatars')
+
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+      
+      if (!cloudName) {
+        // Fallback: use base64 preview if Cloudinary not configured
+        console.warn('Cloudinary not configured, using base64 preview')
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        if (onUploadComplete) {
+          onUploadComplete(preview || '')
+        }
+        
+        toast({
+          title: 'Başarılı',
+          description: 'Profil fotoğrafı güncellendi (geçici)',
+        })
+        return
+      }
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const data = await response.json()
+      const imageUrl = data.secure_url
+
+      setPreview(imageUrl)
 
       toast({
         title: 'Başarılı',
-        description: 'Profil fotoğrafı güncellendi',
+        description: 'Profil fotoğrafı yüklendi',
       })
 
       if (onUploadComplete) {
-        onUploadComplete(preview || '')
+        onUploadComplete(imageUrl)
       }
     } catch (error) {
+      console.error('Avatar upload error:', error)
       toast({
         title: 'Hata',
-        description: 'Fotoğraf yüklenemedi',
+        description: 'Fotoğraf yüklenemedi. Lütfen tekrar deneyin.',
         variant: 'destructive',
       })
       setPreview(currentAvatar)

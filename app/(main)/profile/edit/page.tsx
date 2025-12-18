@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,20 +8,65 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { AvatarUpload } from '@/components/shared/AvatarUpload'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 export default function EditProfilePage() {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [formData, setFormData] = useState({
     username: '',
     full_name: '',
     bio: '',
     avatar_url: '',
   })
+
+  // Load current profile data
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createBrowserClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (!user) {
+          router.push('/login')
+          return
+        }
+
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('username, full_name, bio, avatar_url')
+          .eq('id', user.id)
+          .single()
+
+        if (error) throw error
+
+        if (profile) {
+          setFormData({
+            username: profile.username || '',
+            full_name: profile.full_name || '',
+            bio: profile.bio || '',
+            avatar_url: profile.avatar_url || '',
+          })
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error)
+        toast({
+          title: 'Hata',
+          description: 'Profil bilgileri yüklenemedi',
+          variant: 'destructive',
+        })
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [router, toast])
 
   const handleAvatarUpload = (url: string) => {
     setFormData({ ...formData, avatar_url: url })
@@ -56,6 +101,17 @@ export default function EditProfilePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+          <p className="text-sm text-muted-foreground">Profil yükleniyor...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
