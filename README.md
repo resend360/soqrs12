@@ -45,7 +45,7 @@ Modern, cross-platform QR sosyal platform ve minimal carpooling sistemi. Next.js
 
 ### Payments & Services
 - **Stripe** (VIP QR purchases, platform fees)
-- **Twilio** (SMS verification & notifications)
+- **NetGSM** (SMS verification & notifications - Turkish provider)
 - **OneSignal** (push notifications)
 - **Google Maps API** (geocoding, distance, maps)
 - **Cloudinary** (image optimization, CDN)
@@ -139,10 +139,10 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 
-# Twilio
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_phone_number
+# NetGSM (SMS Provider)
+NETGSM_USERCODE=your_netgsm_usercode
+NETGSM_PASSWORD=your_netgsm_password
+NETGSM_MSGHEADER=your_netgsm_msgheader
 
 # OneSignal
 NEXT_PUBLIC_ONESIGNAL_APP_ID=your_onesignal_app_id
