@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
   
   await supabase.auth.signOut()
   
-  return NextResponse.redirect(new URL('/login', request.url))
+  const loginUrl = new URL('/login', request.nextUrl.origin)
+  return NextResponse.redirect(loginUrl)
 }
 
 export async function GET(request: NextRequest) {
@@ -16,5 +17,6 @@ export async function GET(request: NextRequest) {
   
   await supabase.auth.signOut()
   
-  return NextResponse.redirect(new URL('/login', request.url))
+  const loginUrl = new URL('/login', request.nextUrl.origin)
+  return NextResponse.redirect(loginUrl)
 }
