@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
       '/api/sms/send-otp',
       '/api/profile/update',
       '/api/qr/scan',
+      '/api/qr/generate',
       '/api/park/nearby',
       '/api/park/create-spot',
       '/api/rides/create',
