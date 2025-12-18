@@ -23,6 +23,7 @@ export function middleware(request: NextRequest) {
       '/api/rides/create',
       '/api/marketplace/create',
       '/api/social/create',
+      '/api/vehicles/create',
       '/api/stripe/create-checkout',
     ]
 

@@ -3,89 +3,46 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft, Loader2 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { createClient } from '@/lib/supabase/client'
+import { ArrowLeft, Upload } from 'lucide-react'
 import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
 
 export default function EditProfilePage() {
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const router = useRouter()
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
+    username: '',
     full_name: '',
     bio: '',
     avatar_url: '',
-    social_links: {
-      instagram: '',
-      twitter: '',
-      linkedin: '',
-    },
   })
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createClient()
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-  const loadProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (profile) {
-        setFormData({
-          full_name: profile.full_name || '',
-          bio: profile.bio || '',
-          avatar_url: profile.avatar_url || '',
-          social_links: profile.social_links || {
-            instagram: '',
-            twitter: '',
-            linkedin: '',
-          },
-        })
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSave = async () => {
-    setSaving(true)
-    
     try {
       const response = await fetch('/api/profile/update', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
 
-      if (!response.ok) throw new Error('Failed to update profile')
-
-      toast({
-        title: 'Başarılı',
-        description: 'Profiliniz güncellendi',
-      })
-      
-      router.push('/profile')
+      if (response.ok) {
+        toast({
+          title: 'Başarılı',
+          description: 'Profilin güncellendi',
+        })
+        router.push('/profile')
+      } else {
+        throw new Error('Profile update failed')
+      }
     } catch (error) {
       toast({
         title: 'Hata',
@@ -93,20 +50,12 @@ export default function EditProfilePage() {
         variant: 'destructive',
       })
     } finally {
-      setSaving(false)
+      setLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <div className="container px-4 py-6 space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
@@ -120,104 +69,76 @@ export default function EditProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>Profil Bilgileri</CardTitle>
+            <CardDescription>
+              Profil bilgilerini güncelle
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-center">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={formData.avatar_url} />
-                <AvatarFallback className="text-2xl">
-                  {formData.full_name?.[0]?.toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Avatar */}
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={formData.avatar_url} />
+                  <AvatarFallback className="text-2xl">
+                    {formData.full_name?.[0]?.toUpperCase() || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <Button type="button" variant="outline" size="sm">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Fotoğraf Değiştir
+                </Button>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Ad Soyad</Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                placeholder="Ahmet Yılmaz"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Biyografi</Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Kendinizden bahsedin..."
-                rows={4}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-medium">Sosyal Medya</h3>
-              
+              {/* Username */}
               <div className="space-y-2">
-                <Label htmlFor="instagram">Instagram</Label>
+                <Label htmlFor="username">Kullanıcı Adı</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-muted-foreground">@</span>
+                  <Input
+                    id="username"
+                    placeholder="kullaniciadi"
+                    className="pl-8"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
+                    required
+                    minLength={3}
+                    maxLength={20}
+                  />
+                </div>
+              </div>
+
+              {/* Full Name */}
+              <div className="space-y-2">
+                <Label htmlFor="full_name">Ad Soyad</Label>
                 <Input
-                  id="instagram"
-                  value={formData.social_links.instagram}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    social_links: { ...formData.social_links, instagram: e.target.value }
-                  })}
-                  placeholder="instagram.com/kullaniciadi"
+                  id="full_name"
+                  placeholder="Adın Soyadın"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  required
                 />
               </div>
 
+              {/* Bio */}
               <div className="space-y-2">
-                <Label htmlFor="twitter">Twitter/X</Label>
-                <Input
-                  id="twitter"
-                  value={formData.social_links.twitter}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    social_links: { ...formData.social_links, twitter: e.target.value }
-                  })}
-                  placeholder="twitter.com/kullaniciadi"
+                <Label htmlFor="bio">Hakkında</Label>
+                <Textarea
+                  id="bio"
+                  placeholder="Kendinden bahset..."
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  rows={3}
+                  maxLength={150}
                 />
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.bio.length}/150
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="linkedin">LinkedIn</Label>
-                <Input
-                  id="linkedin"
-                  value={formData.social_links.linkedin}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    social_links: { ...formData.social_links, linkedin: e.target.value }
-                  })}
-                  placeholder="linkedin.com/in/kullaniciadi"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-4">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Kaydediliyor...
-                  </>
-                ) : (
-                  'Kaydet'
-                )}
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? 'Kaydediliyor...' : 'Kaydet'}
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/profile')}
-                disabled={saving}
-              >
-                İptal
-              </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </div>

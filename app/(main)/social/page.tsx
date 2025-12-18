@@ -1,57 +1,99 @@
+import { redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase/server'
 import { Header } from '@/components/shared/Header'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Image } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Heart, MessageCircle, Share2, Plus } from 'lucide-react'
 import Link from 'next/link'
 
-export default function SocialPage() {
+export default async function SocialPage() {
+  const supabase = await createServerClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Get recent posts
+  const { data: posts } = await supabase
+    .from('posts')
+    .select(`
+      *,
+      author:users!author_id(username, full_name, avatar_url)
+    `)
+    .eq('visibility', 'public')
+    .order('created_at', { ascending: false })
+    .limit(20)
+
   return (
     <div>
-      <Header title="SOQRS" showSearch showNotifications />
+      <Header title="Sosyal" showNotifications />
       
-      <div className="container px-4 py-6 space-y-6">
+      <div className="container px-4 py-6 space-y-4">
         {/* Create Post Button */}
         <Button asChild className="w-full" size="lg">
           <Link href="/social/create">
             <Plus className="w-5 h-5 mr-2" />
-            Gönderi Oluştur
+            Yeni Gönderi
           </Link>
         </Button>
 
-        {/* Stories Placeholder */}
-        <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary p-0.5">
-                <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                  <div className="w-14 h-14 rounded-full bg-muted" />
-                </div>
-              </div>
-              <span className="text-xs text-muted-foreground">Hikaye {i}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Feed Placeholder */}
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-4 space-y-4">
+        {/* Posts Feed */}
+        {posts && posts.length > 0 ? (
+          posts.map((post: any) => (
+            <Card key={post.id}>
+              <CardContent className="pt-6 space-y-4">
+                {/* Post Header */}
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-muted" />
+                  <Avatar>
+                    <AvatarImage src={post.author?.avatar_url} />
+                    <AvatarFallback>
+                      {post.author?.full_name?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1">
-                    <p className="font-medium">Kullanıcı {i}</p>
-                    <p className="text-xs text-muted-foreground">2 saat önce</p>
+                    <p className="font-medium">{post.author?.full_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      @{post.author?.username}
+                    </p>
                   </div>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(post.created_at).toLocaleDateString('tr-TR')}
+                  </span>
                 </div>
-                <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-                  <Image className="w-12 h-12 text-muted-foreground" />
+
+                {/* Post Content */}
+                <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+
+                {/* Post Actions */}
+                <div className="flex items-center gap-6 pt-2 border-t">
+                  <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                    <Heart className="w-5 h-5" />
+                    <span className="text-sm">{post.likes_count || 0}</span>
+                  </button>
+                  <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="text-sm">{post.comments_count || 0}</span>
+                  </button>
+                  <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                    <Share2 className="w-5 h-5" />
+                  </button>
                 </div>
-                <p className="text-sm">Gönderi içeriği buraya gelecek...</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground mb-4">Henüz gönderi yok</p>
+              <Button asChild variant="outline">
+                <Link href="/social/create">İlk Gönderiyi Oluştur</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
