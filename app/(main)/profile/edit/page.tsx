@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft, Upload } from 'lucide-react'
+import { AvatarUpload } from '@/components/shared/AvatarUpload'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
 
@@ -22,6 +22,10 @@ export default function EditProfilePage() {
     bio: '',
     avatar_url: '',
   })
+
+  const handleAvatarUpload = (url: string) => {
+    setFormData({ ...formData, avatar_url: url })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,18 +80,11 @@ export default function EditProfilePage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Avatar */}
-              <div className="flex flex-col items-center gap-4">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={formData.avatar_url} />
-                  <AvatarFallback className="text-2xl">
-                    {formData.full_name?.[0]?.toUpperCase() || '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <Button type="button" variant="outline" size="sm">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Fotoğraf Değiştir
-                </Button>
-              </div>
+              <AvatarUpload
+                currentAvatar={formData.avatar_url}
+                fallbackText={formData.full_name?.[0]?.toUpperCase() || '?'}
+                onUploadComplete={handleAvatarUpload}
+              />
 
               {/* Username */}
               <div className="space-y-2">

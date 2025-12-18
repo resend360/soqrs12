@@ -1,10 +1,13 @@
-import { redirect } from 'next/navigation'
-import { createServerClient } from '@/lib/supabase/server'
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Header } from '@/components/shared/Header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
 import { 
   Bell, 
   Globe, 
@@ -17,23 +20,39 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function SettingsPage() {
-  const supabase = await createServerClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+export default function SettingsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
+  const [settings, setSettings] = useState({
+    pushNotifications: true,
+    emailNotifications: false,
+    smsNotifications: false,
+    profileVisibility: true,
+    locationSharing: true,
+    showPhone: false,
+    darkMode: false,
+  })
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile) {
-    redirect('/onboarding')
+  const handleSave = async () => {
+    setLoading(true)
+    try {
+      // TODO: Save settings to database
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      toast({
+        title: 'Başarılı',
+        description: 'Ayarlar kaydedildi',
+      })
+    } catch (error) {
+      toast({
+        title: 'Hata',
+        description: 'Ayarlar kaydedilemedi',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -55,15 +74,27 @@ export default async function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="push-notifications">Push Bildirimleri</Label>
-              <Switch id="push-notifications" defaultChecked />
+              <Switch 
+                id="push-notifications" 
+                checked={settings.pushNotifications}
+                onCheckedChange={(checked) => setSettings({...settings, pushNotifications: checked})}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="email-notifications">E-posta Bildirimleri</Label>
-              <Switch id="email-notifications" />
+              <Switch 
+                id="email-notifications" 
+                checked={settings.emailNotifications}
+                onCheckedChange={(checked) => setSettings({...settings, emailNotifications: checked})}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="sms-notifications">SMS Bildirimleri</Label>
-              <Switch id="sms-notifications" />
+              <Switch 
+                id="sms-notifications" 
+                checked={settings.smsNotifications}
+                onCheckedChange={(checked) => setSettings({...settings, smsNotifications: checked})}
+              />
             </div>
           </CardContent>
         </Card>
@@ -104,15 +135,27 @@ export default async function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="profile-visibility">Profil Görünürlüğü</Label>
-              <Switch id="profile-visibility" defaultChecked />
+              <Switch 
+                id="profile-visibility" 
+                checked={settings.profileVisibility}
+                onCheckedChange={(checked) => setSettings({...settings, profileVisibility: checked})}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="location-sharing">Konum Paylaşımı</Label>
-              <Switch id="location-sharing" defaultChecked />
+              <Switch 
+                id="location-sharing" 
+                checked={settings.locationSharing}
+                onCheckedChange={(checked) => setSettings({...settings, locationSharing: checked})}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="show-phone">Telefon Numarasını Göster</Label>
-              <Switch id="show-phone" />
+              <Switch 
+                id="show-phone" 
+                checked={settings.showPhone}
+                onCheckedChange={(checked) => setSettings({...settings, showPhone: checked})}
+              />
             </div>
           </CardContent>
         </Card>
@@ -131,10 +174,24 @@ export default async function SettingsPage() {
           <CardContent>
             <div className="flex items-center justify-between">
               <Label htmlFor="dark-mode">Karanlık Mod</Label>
-              <Switch id="dark-mode" />
+              <Switch 
+                id="dark-mode" 
+                checked={settings.darkMode}
+                onCheckedChange={(checked) => setSettings({...settings, darkMode: checked})}
+              />
             </div>
           </CardContent>
         </Card>
+
+        {/* Save Button */}
+        <Button 
+          onClick={handleSave} 
+          className="w-full" 
+          size="lg"
+          disabled={loading}
+        >
+          {loading ? 'Kaydediliyor...' : 'Ayarları Kaydet'}
+        </Button>
 
         {/* Support */}
         <Card>

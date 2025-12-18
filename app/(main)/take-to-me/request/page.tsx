@@ -31,37 +31,66 @@ export default function RequestRidePage() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
-            const response = await fetch('/api/rides/create', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                ...formData,
-                location: {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                },
-              }),
-            })
-
-            if (response.ok) {
-              toast({
-                title: 'Talep Oluşturuldu',
-                description: 'Yolculuk talebiniz yakındaki sürücülere iletildi',
+            try {
+              const response = await fetch('/api/rides/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  from: formData.from,
+                  to: formData.to,
+                  passengers: formData.passengers,
+                  notes: formData.notes,
+                  location: {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                  },
+                }),
               })
-              router.push('/take-to-me')
-            } else {
-              throw new Error('Failed to create ride request')
+
+              const data = await response.json()
+
+              if (response.ok) {
+                toast({
+                  title: 'Talep Oluşturuldu',
+                  description: 'Yolculuk talebiniz yakındaki sürücülere iletildi',
+                })
+                router.push('/take-to-me')
+              } else {
+                throw new Error(data.error || 'Failed to create ride request')
+              }
+            } catch (error: any) {
+              console.error('Ride create error:', error)
+              toast({
+                title: 'Hata',
+                description: error.message || 'Talep oluşturulamadı',
+                variant: 'destructive',
+              })
+            } finally {
+              setLoading(false)
             }
           },
-          () => {
+          (error) => {
+            console.error('Location error:', error)
             toast({
               title: 'Konum Hatası',
-              description: 'Konum izni gerekli',
+              description: 'Konum izni gerekli. Lütfen tarayıcı ayarlarından konum iznini verin.',
               variant: 'destructive',
             })
             setLoading(false)
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
           }
         )
+      } else {
+        toast({
+          title: 'Konum Desteklenmiyor',
+          description: 'Tarayıcınız konum servislerini desteklemiyor',
+          variant: 'destructive',
+        })
+        setLoading(false)
       }
     } catch (error) {
       toast({
