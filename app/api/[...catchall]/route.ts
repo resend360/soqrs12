@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 function handleNotImplemented(request: NextRequest) {
-  const { pathname } = new URL(request.url)
+  const pathname = request.nextUrl.pathname
   
   console.warn(`[API 404] ${request.method} ${pathname} - Not implemented`)
 

@@ -198,7 +198,7 @@ BEGIN
   END IF;
 END $$;
 
--- RIDE_REQUESTS (if exists)
+-- RIDE_REQUESTS (if exists) - handles both rider_id and requester_id
 DO $$
 BEGIN
   IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'ride_requests') THEN
@@ -206,9 +206,28 @@ BEGIN
     EXECUTE 'DROP POLICY IF EXISTS "Users can create their own ride requests" ON ride_requests';
     EXECUTE 'DROP POLICY IF EXISTS "Users can update their own ride requests" ON ride_requests';
     
-    EXECUTE 'CREATE POLICY "Users can view active ride requests" ON ride_requests FOR SELECT USING (status = ''active'' OR requester_id = auth.uid() OR matched_driver_id = auth.uid())';
-    EXECUTE 'CREATE POLICY "Users can create their own ride requests" ON ride_requests FOR INSERT WITH CHECK (auth.uid() = requester_id)';
-    EXECUTE 'CREATE POLICY "Users can update their own ride requests" ON ride_requests FOR UPDATE USING (auth.uid() = requester_id OR auth.uid() = matched_driver_id)';
+    -- Check which column exists: rider_id or requester_id
+    IF EXISTS (
+      SELECT FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+      AND table_name = 'ride_requests' 
+      AND column_name = 'rider_id'
+    ) THEN
+      -- Use rider_id (from 00001_initial_schema.sql)
+      EXECUTE 'CREATE POLICY "Users can view active ride requests" ON ride_requests FOR SELECT USING (status IN (''pending'', ''matched'', ''in_progress'') OR rider_id = auth.uid())';
+      EXECUTE 'CREATE POLICY "Users can create their own ride requests" ON ride_requests FOR INSERT WITH CHECK (auth.uid() = rider_id)';
+      EXECUTE 'CREATE POLICY "Users can update their own ride requests" ON ride_requests FOR UPDATE USING (auth.uid() = rider_id)';
+    ELSIF EXISTS (
+      SELECT FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+      AND table_name = 'ride_requests' 
+      AND column_name = 'requester_id'
+    ) THEN
+      -- Use requester_id (from 00002_additional_tables.sql)
+      EXECUTE 'CREATE POLICY "Users can view active ride requests" ON ride_requests FOR SELECT USING (status = ''active'' OR requester_id = auth.uid() OR matched_driver_id = auth.uid())';
+      EXECUTE 'CREATE POLICY "Users can create their own ride requests" ON ride_requests FOR INSERT WITH CHECK (auth.uid() = requester_id)';
+      EXECUTE 'CREATE POLICY "Users can update their own ride requests" ON ride_requests FOR UPDATE USING (auth.uid() = requester_id OR auth.uid() = matched_driver_id)';
+    END IF;
   END IF;
 END $$;
 
