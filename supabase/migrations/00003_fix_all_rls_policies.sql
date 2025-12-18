@@ -1,11 +1,6 @@
 -- Fix RLS Policies - SIMPLIFIED VERSION
 -- Only for tables that DEFINITELY exist
 
-DO $$ 
-BEGIN
-  RAISE NOTICE '🚀 Starting RLS policy fixes...';
-END $$;
-
 -- ============================================================================
 -- USERS TABLE
 -- ============================================================================
@@ -19,8 +14,6 @@ CREATE POLICY "Users can insert their own profile"
   ON users FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users can update their own profile"
   ON users FOR UPDATE USING (auth.uid() = id);
-
-RAISE NOTICE '✅ users policies created';
 
 -- ============================================================================
 -- VEHICLES TABLE
@@ -39,8 +32,6 @@ CREATE POLICY "Users can update their own vehicles"
 CREATE POLICY "Users can delete their own vehicles"
   ON vehicles FOR DELETE USING (auth.uid() = user_id);
 
-RAISE NOTICE '✅ vehicles policies created';
-
 -- ============================================================================
 -- QR_CODES TABLE
 -- ============================================================================
@@ -57,8 +48,6 @@ CREATE POLICY "Users can insert their own QR codes"
   ON qr_codes FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own QR codes"
   ON qr_codes FOR UPDATE USING (auth.uid() = user_id);
-
-RAISE NOTICE '✅ qr_codes policies created';
 
 -- ============================================================================
 -- POSTS TABLE
@@ -77,8 +66,6 @@ CREATE POLICY "Users can update their own posts"
 CREATE POLICY "Users can delete their own posts"
   ON posts FOR DELETE USING (auth.uid() = user_id);
 
-RAISE NOTICE '✅ posts policies created';
-
 -- ============================================================================
 -- LIKES TABLE
 -- ============================================================================
@@ -92,8 +79,6 @@ CREATE POLICY "Users can insert their own likes"
   ON likes FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own likes"
   ON likes FOR DELETE USING (auth.uid() = user_id);
-
-RAISE NOTICE '✅ likes policies created';
 
 -- ============================================================================
 -- COMMENTS TABLE
@@ -111,8 +96,6 @@ CREATE POLICY "Users can update their own comments"
   ON comments FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own comments"
   ON comments FOR DELETE USING (auth.uid() = user_id);
-
-RAISE NOTICE '✅ comments policies created';
 
 -- ============================================================================
 -- PARK_NOTES TABLE
@@ -134,8 +117,6 @@ CREATE POLICY "Users can update their sent notes"
 CREATE POLICY "Users can delete their sent notes"
   ON park_notes FOR DELETE USING (auth.uid() = from_user_id);
 
-RAISE NOTICE '✅ park_notes policies created';
-
 -- ============================================================================
 -- FRIENDSHIPS TABLE
 -- ============================================================================
@@ -152,8 +133,6 @@ CREATE POLICY "Users can update their friendships"
   ON friendships FOR UPDATE USING (auth.uid() = user_id OR auth.uid() = friend_id);
 CREATE POLICY "Users can delete their friendships"
   ON friendships FOR DELETE USING (auth.uid() = user_id OR auth.uid() = friend_id);
-
-RAISE NOTICE '✅ friendships policies created';
 
 -- ============================================================================
 -- NOTIFICATIONS TABLE
@@ -172,8 +151,6 @@ CREATE POLICY "Users can update their own notifications"
 CREATE POLICY "Users can delete their own notifications"
   ON notifications FOR DELETE USING (auth.uid() = user_id);
 
-RAISE NOTICE '✅ notifications policies created';
-
 -- ============================================================================
 -- MARKETPLACE_ADS TABLE
 -- ============================================================================
@@ -191,8 +168,6 @@ CREATE POLICY "Users can update their own ads"
 CREATE POLICY "Users can delete their own ads"
   ON marketplace_ads FOR DELETE USING (auth.uid() = seller_id);
 
-RAISE NOTICE '✅ marketplace_ads policies created';
-
 -- ============================================================================
 -- OPTIONAL TABLES (with IF EXISTS check)
 -- ============================================================================
@@ -206,7 +181,6 @@ BEGIN
     EXECUTE 'DROP POLICY IF EXISTS "Users can update their own park spots" ON park_spots';
     EXECUTE 'DROP POLICY IF EXISTS "Users can delete their own park spots" ON park_spots';
     
-    -- Check if status column exists
     IF EXISTS (
       SELECT FROM information_schema.columns 
       WHERE table_schema = 'public' 
@@ -221,10 +195,6 @@ BEGIN
     EXECUTE 'CREATE POLICY "Users can insert their own park spots" ON park_spots FOR INSERT WITH CHECK (auth.uid() = user_id)';
     EXECUTE 'CREATE POLICY "Users can update their own park spots" ON park_spots FOR UPDATE USING (auth.uid() = user_id)';
     EXECUTE 'CREATE POLICY "Users can delete their own park spots" ON park_spots FOR DELETE USING (auth.uid() = user_id)';
-    
-    RAISE NOTICE '✅ park_spots policies created';
-  ELSE
-    RAISE NOTICE '⚠️ park_spots table does not exist, skipping';
   END IF;
 END $$;
 
@@ -239,10 +209,6 @@ BEGIN
     EXECUTE 'CREATE POLICY "Users can view active ride requests" ON ride_requests FOR SELECT USING (status = ''active'' OR requester_id = auth.uid() OR matched_driver_id = auth.uid())';
     EXECUTE 'CREATE POLICY "Users can create their own ride requests" ON ride_requests FOR INSERT WITH CHECK (auth.uid() = requester_id)';
     EXECUTE 'CREATE POLICY "Users can update their own ride requests" ON ride_requests FOR UPDATE USING (auth.uid() = requester_id OR auth.uid() = matched_driver_id)';
-    
-    RAISE NOTICE '✅ ride_requests policies created';
-  ELSE
-    RAISE NOTICE '⚠️ ride_requests table does not exist, skipping';
   END IF;
 END $$;
 
@@ -259,22 +225,5 @@ BEGIN
     EXECUTE 'CREATE POLICY "Users can create their own listings" ON marketplace_items FOR INSERT WITH CHECK (auth.uid() = seller_id)';
     EXECUTE 'CREATE POLICY "Users can update their own listings" ON marketplace_items FOR UPDATE USING (auth.uid() = seller_id)';
     EXECUTE 'CREATE POLICY "Users can delete their own listings" ON marketplace_items FOR DELETE USING (auth.uid() = seller_id)';
-    
-    RAISE NOTICE '✅ marketplace_items policies created';
-  ELSE
-    RAISE NOTICE '⚠️ marketplace_items table does not exist, skipping';
   END IF;
-END $$;
-
--- ============================================================================
--- SUCCESS MESSAGE
--- ============================================================================
-
-DO $$ 
-BEGIN
-  RAISE NOTICE '🎉 RLS policies successfully created!';
-  RAISE NOTICE '✅ Core tables configured: users, vehicles, qr_codes, posts, likes, comments';
-  RAISE NOTICE '✅ Core tables configured: park_notes, friendships, notifications, marketplace_ads';
-  RAISE NOTICE '📊 Optional tables checked and configured if they exist';
-  RAISE NOTICE '🚀 Database is ready!';
 END $$;
